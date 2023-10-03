@@ -1,2 +1,4 @@
 theme: jekyll-theme-dinky
+title: PoC .NET - CQRS 
+description: 🔬 Proof of Concept of CQRS pattern in .NET using RabbitMQ, ReBus, State Machine, MediatR
 show_downloads: true
