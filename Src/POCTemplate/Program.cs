@@ -5,7 +5,7 @@ namespace POCTemplate;
 [ExcludeFromCodeCoverage]
 internal static class Program
 {
-    public static void Main()
+    static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
     }
