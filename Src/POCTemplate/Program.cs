@@ -1,10 +1,12 @@
-﻿namespace POCTemplate;
+using System.Diagnostics.CodeAnalysis;
 
+namespace POCTemplate;
+
+[ExcludeFromCodeCoverage]
 internal static class Program
 {
-    public static void Main()
+    static void Main(string[] args)
     {
-        // This is a placeholder for the main entry point of the application.
         Console.WriteLine("Hello, World!");
     }
 }
