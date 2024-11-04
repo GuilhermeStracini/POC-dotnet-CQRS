@@ -22,3 +22,6 @@ jobs:
         run: |
           dotnet csharpier . --check
           echo "run 'dotnet build' to fix the formatting of the code automatically"
+      - name: Notify completion
+        run: echo "Linter check completed."
+
