@@ -1,4 +1,4 @@
-name: Fix SonarCloud Issues with Pixeebot
+name: SonarCloud and Pixeebot Integration
 on:
   check_run:
     types: [completed]
@@ -9,6 +9,9 @@ permissions:
 jobs:
   share:
     name: Upload Sonar Results to Pixeebot
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
     runs-on: ubuntu-latest
     if: ${{ github.event.check_run.name == 'SonarCloud Code Analysis' }}
     steps:
