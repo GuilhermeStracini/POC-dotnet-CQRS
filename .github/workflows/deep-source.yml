@@ -16,7 +16,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Install DeepSource scanner
+      - name: Install and configure DeepSource scanner
         run: curl https://deepsource.io/cli | sh
 
       - name: Setup .NET
@@ -31,3 +31,6 @@ jobs:
           dotnet build -c Debug --verbosity minimal
           dotnet test -c Debug --verbosity minimal --no-build --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat="cobertura"
           ./bin/deepsource report --analyzer test-coverage --key csharp --value-file ./Tests/POCTemplate.Tests/coverage.cobertura.xml
+      - name: Run DeepSource analysis
+        run: ./bin/deepsource analyze
+
