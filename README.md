@@ -1,4 +1,7 @@
 # PoC .NET - CQRS
+## Pixee Activity Dashboard
+
+For details about the dashboard that summarizes repository activity and improvement opportunities, see [Pixee Activity Dashboard](Docs/PIXEE_ACTIVITY_DASHBOARD.md).
 
 [![wakatime](https://wakatime.com/badge/github/GuilhermeStracini/POC-dotnet-CQRS.svg)](https://wakatime.com/badge/github/GuilhermeStracini/POC-dotnet-CQRS)
 [![Maintainability](https://api.codeclimate.com/v1/badges/cc989f187ec5a1a8ced8/maintainability)](https://codeclimate.com/github/GuilhermeStracini/POC-dotnet-CQRS/maintainability)
