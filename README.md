@@ -8,3 +8,9 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/GuilhermeStracini/POC-dotnet-CQRS)](https://github.com/GuilhermeStracini/POC-dotnet-CQRS)
 
 🔬 Proof of Concept of CQRS pattern in .NET using RabbitMQ, ReBus, State Machine, MediatR and Docker
+## Pixeebot Activity Dashboard
+![DashList](https://docs.pixee.ai/img/pixee_dashlist.png)
+
+Summary: This dashboard summarizes repository activity including recommendations, integration of C# code scanning tools, and enhanced metrics visibility.
+
+**Recommendations:** Integrate supported C# code scanning tools and actively seek user feedback on metrics.
