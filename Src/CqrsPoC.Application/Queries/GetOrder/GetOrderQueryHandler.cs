@@ -9,7 +9,8 @@ public sealed class GetOrderQueryHandler(IOrderRepository repository)
     public async Task<OrderDto?> Handle(GetOrderQuery request, CancellationToken ct)
     {
         var order = await repository.GetByIdAsync(request.OrderId, ct);
-        if (order is null) return null;
+        if (order is null)
+            return null;
 
         return new OrderDto(
             order.Id,
@@ -21,6 +22,7 @@ public sealed class GetOrderQueryHandler(IOrderRepository repository)
             order.CancelReason,
             order.PermittedTriggers,
             order.CreatedAt,
-            order.UpdatedAt);
+            order.UpdatedAt
+        );
     }
 }

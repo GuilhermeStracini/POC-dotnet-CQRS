@@ -19,32 +19,35 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         // ── Persistence (EF Core + InMemory for PoC) ──────────────────────────
-        services.AddDbContext<AppDbContext>(opts =>
-            opts.UseInMemoryDatabase("CqrsPocDb"));
+        services.AddDbContext<AppDbContext>(opts => opts.UseInMemoryDatabase("CqrsPocDb"));
 
         services.AddScoped<IOrderRepository, OrderRepository>();
 
         // ── Messaging (Rebus + RabbitMQ) ──────────────────────────────────────
-        var rabbitMqConnectionString = configuration
-            .GetConnectionString("RabbitMQ")
-            ?? "amqp://guest:guest@localhost:5672";
+        var rabbitMqConnectionString =
+            configuration.GetConnectionString("RabbitMQ") ?? "amqp://guest:guest@localhost:5672";
 
-        services.AddRebus(configure => configure
-            .Transport(t => t.UseRabbitMq(rabbitMqConnectionString, QueueName))
-            .Routing(r => r.TypeBased()
-                .Map<OrderCreatedEvent>(QueueName)
-                .Map<OrderConfirmedEvent>(QueueName)
-                .Map<OrderShippedEvent>(QueueName)
-                .Map<OrderCompletedEvent>(QueueName)
-                .Map<OrderCancelledEvent>(QueueName))
-            .Options(o =>
-            {
-                o.SetNumberOfWorkers(2);
-                o.SetMaxParallelism(4);
-            }));
+        services.AddRebus(configure =>
+            configure
+                .Transport(t => t.UseRabbitMq(rabbitMqConnectionString, QueueName))
+                .Routing(r =>
+                    r.TypeBased()
+                        .Map<OrderCreatedEvent>(QueueName)
+                        .Map<OrderConfirmedEvent>(QueueName)
+                        .Map<OrderShippedEvent>(QueueName)
+                        .Map<OrderCompletedEvent>(QueueName)
+                        .Map<OrderCancelledEvent>(QueueName)
+                )
+                .Options(o =>
+                {
+                    o.SetNumberOfWorkers(2);
+                    o.SetMaxParallelism(4);
+                })
+        );
 
         // ── Register all Rebus message handlers ───────────────────────────────
         services.AddRebusHandler<OrderCreatedEventHandler>();

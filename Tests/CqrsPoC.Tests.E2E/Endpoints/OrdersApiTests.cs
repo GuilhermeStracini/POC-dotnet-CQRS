@@ -21,7 +21,7 @@ namespace CqrsPoC.Tests.E2E.Endpoints;
 /// </summary>
 public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 {
-    private readonly HttpClient                  _client;
+    private readonly HttpClient _client;
     private readonly OrdersWebApplicationFactory _factory;
 
     private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web);
@@ -29,7 +29,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     public OrdersApiTests(OrdersWebApplicationFactory factory)
     {
         _factory = factory;
-        _client  = factory.CreateClient();
+        _client = factory.CreateClient();
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -39,12 +39,15 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     [Fact]
     public async Task POST_CreateOrder_Returns201WithLocationAndId()
     {
-        var response = await _client.PostAsJsonAsync("/api/orders", new
-        {
-            customerName = "E2E Alice",
-            productName  = "E2E Widget",
-            amount       = 149.99
-        });
+        var response = await _client.PostAsJsonAsync(
+            "/api/orders",
+            new
+            {
+                customerName = "E2E Alice",
+                productName = "E2E Widget",
+                amount = 149.99,
+            }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         response.Headers.Location.Should().NotBeNull();
@@ -58,27 +61,34 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     {
         _factory.PublisherMock.Invocations.Clear();
 
-        await _client.PostAsJsonAsync("/api/orders", new
-        {
-            customerName = "Event Tester",
-            productName  = "Event Product",
-            amount       = 50.00
-        });
+        await _client.PostAsJsonAsync(
+            "/api/orders",
+            new
+            {
+                customerName = "Event Tester",
+                productName = "Event Product",
+                amount = 50.00,
+            }
+        );
 
         _factory.PublisherMock.Verify(
             p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), default),
-            Times.Once);
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task POST_CreateOrder_WithZeroAmount_Returns400ProblemDetails()
     {
-        var response = await _client.PostAsJsonAsync("/api/orders", new
-        {
-            customerName = "Bad Request",
-            productName  = "Product",
-            amount       = 0
-        });
+        var response = await _client.PostAsJsonAsync(
+            "/api/orders",
+            new
+            {
+                customerName = "Bad Request",
+                productName = "Product",
+                amount = 0,
+            }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -90,12 +100,15 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     [Fact]
     public async Task POST_CreateOrder_WithEmptyCustomerName_Returns400()
     {
-        var response = await _client.PostAsJsonAsync("/api/orders", new
-        {
-            customerName = "",
-            productName  = "Product",
-            amount       = 50
-        });
+        var response = await _client.PostAsJsonAsync(
+            "/api/orders",
+            new
+            {
+                customerName = "",
+                productName = "Product",
+                amount = 50,
+            }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -148,8 +161,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     public async Task GET_OrderById_InvalidGuid_Returns400OrNotFound()
     {
         var response = await _client.GetAsync("/api/orders/not-a-guid");
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest, HttpStatusCode.NotFound);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -173,8 +185,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     [Fact]
     public async Task PUT_Confirm_NonExistentOrder_Returns404()
     {
-        var response = await _client.PutAsync(
-            $"/api/orders/{Guid.NewGuid()}/confirm", null);
+        var response = await _client.PutAsync($"/api/orders/{Guid.NewGuid()}/confirm", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -257,7 +268,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         var response = await _client.PutAsJsonAsync(
             $"/api/orders/{id}/cancel",
-            new { reason = "Changed mind" });
+            new { reason = "Changed mind" }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
@@ -275,7 +287,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         var response = await _client.PutAsJsonAsync(
             $"/api/orders/{id}/cancel",
-            new { reason = "Out of stock" });
+            new { reason = "Out of stock" }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -289,7 +302,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         var response = await _client.PutAsJsonAsync(
             $"/api/orders/{id}/cancel",
-            new { reason = "Too late" });
+            new { reason = "Too late" }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -299,7 +313,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     {
         var response = await _client.PutAsJsonAsync(
             $"/api/orders/{Guid.NewGuid()}/cancel",
-            new { reason = "reason" });
+            new { reason = "reason" }
+        );
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -312,12 +327,15 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
     public async Task FullE2ELifecycle_CreateConfirmShipComplete_AllStatesCorrect()
     {
         // 1. Create
-        var createResponse = await _client.PostAsJsonAsync("/api/orders", new
-        {
-            customerName = "E2E Full Test",
-            productName  = "E2E Product",
-            amount       = 299.99
-        });
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/orders",
+            new
+            {
+                customerName = "E2E Full Test",
+                productName = "E2E Product",
+                amount = 299.99,
+            }
+        );
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         var id = created.GetProperty("id").GetGuid();
@@ -329,7 +347,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         // 3. Confirm
         (await _client.PutAsync($"/api/orders/{id}/confirm", null))
-            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+            .StatusCode.Should()
+            .Be(HttpStatusCode.NoContent);
 
         var confirmed = await GetOrderAsync(id);
         confirmed!.State.Should().Be(OrderState.Confirmed);
@@ -337,7 +356,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         // 4. Ship
         (await _client.PutAsync($"/api/orders/{id}/ship", null))
-            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+            .StatusCode.Should()
+            .Be(HttpStatusCode.NoContent);
 
         var shipped = await GetOrderAsync(id);
         shipped!.State.Should().Be(OrderState.Shipped);
@@ -345,7 +365,8 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
 
         // 5. Complete
         (await _client.PutAsync($"/api/orders/{id}/complete", null))
-            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+            .StatusCode.Should()
+            .Be(HttpStatusCode.NoContent);
 
         var completed = await GetOrderAsync(id);
         completed!.State.Should().Be(OrderState.Completed);

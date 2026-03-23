@@ -21,22 +21,25 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     private const string QueueName = "test-orders-queue";
 
     private readonly BuiltinHandlerActivator _activator;
-    private readonly IBus                   _bus;
-    private readonly InMemNetwork           _network;
+    private readonly IBus _bus;
+    private readonly InMemNetwork _network;
 
     public RebusEventHandlerTests()
     {
-        _network   = new InMemNetwork();
+        _network = new InMemNetwork();
         _activator = new BuiltinHandlerActivator();
 
-        _bus = Configure.With(_activator)
+        _bus = Configure
+            .With(_activator)
             .Transport(t => t.UseInMemoryTransport(_network, QueueName))
-            .Routing(r => r.TypeBased()
-                .Map<OrderCreatedEvent>(QueueName)
-                .Map<OrderConfirmedEvent>(QueueName)
-                .Map<OrderShippedEvent>(QueueName)
-                .Map<OrderCompletedEvent>(QueueName)
-                .Map<OrderCancelledEvent>(QueueName))
+            .Routing(r =>
+                r.TypeBased()
+                    .Map<OrderCreatedEvent>(QueueName)
+                    .Map<OrderConfirmedEvent>(QueueName)
+                    .Map<OrderShippedEvent>(QueueName)
+                    .Map<OrderCompletedEvent>(QueueName)
+                    .Map<OrderCancelledEvent>(QueueName)
+            )
             .Start();
     }
 
@@ -53,10 +56,10 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     public async Task OrderCreatedHandler_ReceivesPublishedEvent_WithoutThrowing()
     {
         var received = new TaskCompletionSource<OrderCreatedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
-        var handler = new OrderCreatedEventHandler(
-            NullLogger<OrderCreatedEventHandler>.Instance);
+        var handler = new OrderCreatedEventHandler(NullLogger<OrderCreatedEventHandler>.Instance);
 
         _activator.Handle<OrderCreatedEvent>(async msg =>
         {
@@ -65,7 +68,12 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
         });
 
         var @event = new OrderCreatedEvent(
-            Guid.NewGuid(), "Alice", "Widget", 99.99m, DateTime.UtcNow);
+            Guid.NewGuid(),
+            "Alice",
+            "Widget",
+            99.99m,
+            DateTime.UtcNow
+        );
 
         await _bus.Send(@event);
 
@@ -81,10 +89,12 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     public async Task OrderConfirmedHandler_ReceivesPublishedEvent_WithoutThrowing()
     {
         var received = new TaskCompletionSource<OrderConfirmedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
         var handler = new OrderConfirmedEventHandler(
-            NullLogger<OrderConfirmedEventHandler>.Instance);
+            NullLogger<OrderConfirmedEventHandler>.Instance
+        );
 
         _activator.Handle<OrderConfirmedEvent>(async msg =>
         {
@@ -105,10 +115,10 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     public async Task OrderShippedHandler_ReceivesPublishedEvent_WithoutThrowing()
     {
         var received = new TaskCompletionSource<OrderShippedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
-        var handler = new OrderShippedEventHandler(
-            NullLogger<OrderShippedEventHandler>.Instance);
+        var handler = new OrderShippedEventHandler(NullLogger<OrderShippedEventHandler>.Instance);
 
         _activator.Handle<OrderShippedEvent>(async msg =>
         {
@@ -127,10 +137,12 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     public async Task OrderCompletedHandler_ReceivesPublishedEvent_WithoutThrowing()
     {
         var received = new TaskCompletionSource<OrderCompletedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
         var handler = new OrderCompletedEventHandler(
-            NullLogger<OrderCompletedEventHandler>.Instance);
+            NullLogger<OrderCompletedEventHandler>.Instance
+        );
 
         _activator.Handle<OrderCompletedEvent>(async msg =>
         {
@@ -149,10 +161,12 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     public async Task OrderCancelledHandler_ReceivesPublishedEvent_WithoutThrowing()
     {
         var received = new TaskCompletionSource<OrderCancelledEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
 
         var handler = new OrderCancelledEventHandler(
-            NullLogger<OrderCancelledEventHandler>.Instance);
+            NullLogger<OrderCancelledEventHandler>.Instance
+        );
 
         _activator.Handle<OrderCancelledEvent>(async msg =>
         {

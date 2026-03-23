@@ -24,7 +24,7 @@ public sealed class QueryHandlerTests
         _repoMock.Setup(r => r.GetByIdAsync(order.Id, default)).ReturnsAsync(order);
 
         var handler = new GetOrderQueryHandler(_repoMock.Object);
-        var result  = await handler.Handle(new GetOrderQuery(order.Id), default);
+        var result = await handler.Handle(new GetOrderQuery(order.Id), default);
 
         result.Should().NotBeNull();
         result!.Id.Should().Be(order.Id);
@@ -40,11 +40,10 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task GetOrder_NonExistingId_ReturnsNull()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
-                 .ReturnsAsync((Order?)null);
+        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Order?)null);
 
         var handler = new GetOrderQueryHandler(_repoMock.Object);
-        var result  = await handler.Handle(new GetOrderQuery(Guid.NewGuid()), default);
+        var result = await handler.Handle(new GetOrderQuery(Guid.NewGuid()), default);
 
         result.Should().BeNull();
     }
@@ -57,7 +56,7 @@ public sealed class QueryHandlerTests
         _repoMock.Setup(r => r.GetByIdAsync(order.Id, default)).ReturnsAsync(order);
 
         var handler = new GetOrderQueryHandler(_repoMock.Object);
-        var result  = await handler.Handle(new GetOrderQuery(order.Id), default);
+        var result = await handler.Handle(new GetOrderQuery(order.Id), default);
 
         result!.State.Should().Be(OrderState.Confirmed);
         result.StateName.Should().Be("Confirmed");
@@ -73,7 +72,7 @@ public sealed class QueryHandlerTests
         _repoMock.Setup(r => r.GetByIdAsync(order.Id, default)).ReturnsAsync(order);
 
         var handler = new GetOrderQueryHandler(_repoMock.Object);
-        var result  = await handler.Handle(new GetOrderQuery(order.Id), default);
+        var result = await handler.Handle(new GetOrderQuery(order.Id), default);
 
         result!.CancelReason.Should().Be("No longer needed");
         result.PermittedTriggers.Should().BeEmpty();
@@ -89,26 +88,23 @@ public sealed class QueryHandlerTests
         var orders = new List<Order>
         {
             Order.Create("Alice", "Widget A", 10m),
-            Order.Create("Bob",   "Widget B", 20m),
-            Order.Create("Carol", "Widget C", 30m)
+            Order.Create("Bob", "Widget B", 20m),
+            Order.Create("Carol", "Widget C", 30m),
         };
 
-        _repoMock.Setup(r => r.GetAllAsync(default))
-                 .ReturnsAsync(orders.AsReadOnly());
+        _repoMock.Setup(r => r.GetAllAsync(default)).ReturnsAsync(orders.AsReadOnly());
 
         var handler = new GetAllOrdersQueryHandler(_repoMock.Object);
         var results = await handler.Handle(new GetAllOrdersQuery(), default);
 
         results.Should().HaveCount(3);
-        results.Select(r => r.CustomerName)
-               .Should().BeEquivalentTo(["Alice", "Bob", "Carol"]);
+        results.Select(r => r.CustomerName).Should().BeEquivalentTo(["Alice", "Bob", "Carol"]);
     }
 
     [Fact]
     public async Task GetAllOrders_EmptyRepository_ReturnsEmptyList()
     {
-        _repoMock.Setup(r => r.GetAllAsync(default))
-                 .ReturnsAsync(new List<Order>().AsReadOnly());
+        _repoMock.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Order>().AsReadOnly());
 
         var handler = new GetAllOrdersQueryHandler(_repoMock.Object);
         var results = await handler.Handle(new GetAllOrdersQuery(), default);
@@ -119,15 +115,16 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task GetAllOrders_MixedStates_EachDtoReflectsItsOwnState()
     {
-        var pending   = Order.Create("P", "Prod", 1m);
+        var pending = Order.Create("P", "Prod", 1m);
         var confirmed = Order.Create("C", "Prod", 2m);
         confirmed.Confirm();
         var shipped = Order.Create("S", "Prod", 3m);
         shipped.Confirm();
         shipped.Ship();
 
-        _repoMock.Setup(r => r.GetAllAsync(default))
-                 .ReturnsAsync(new List<Order> { pending, confirmed, shipped }.AsReadOnly());
+        _repoMock
+            .Setup(r => r.GetAllAsync(default))
+            .ReturnsAsync(new List<Order> { pending, confirmed, shipped }.AsReadOnly());
 
         var handler = new GetAllOrdersQueryHandler(_repoMock.Object);
         var results = await handler.Handle(new GetAllOrdersQuery(), default);

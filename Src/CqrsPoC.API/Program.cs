@@ -16,11 +16,13 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title   = "CQRS PoC — Order Management API",
-        Version = "v1",
-        Description = """
+    c.SwaggerDoc(
+        "v1",
+        new OpenApiInfo
+        {
+            Title = "CQRS PoC — Order Management API",
+            Version = "v1",
+            Description = """
             Proof of Concept demonstrating CQRS in .NET 10.
 
             **Stack:** MediatR · Rebus · RabbitMQ · Stateless State Machine · EF Core
@@ -31,8 +33,9 @@ builder.Services.AddSwaggerGen(c =>
               │                        │
               └──────────[cancel]──────┘──────────────────────────────────────► Cancelled
             ```
-            """
-    });
+            """,
+        }
+    );
     c.EnableAnnotations();
 });
 
@@ -45,25 +48,29 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
-        if (feature?.Error is null) return;
+        var feature =
+            context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        if (feature?.Error is null)
+            return;
 
         var (status, message) = feature.Error switch
         {
-            OrderNotFoundException  ex => (StatusCodes.Status404NotFound,  ex.Message),
-            DomainException         ex => (StatusCodes.Status400BadRequest, ex.Message),
-            _                          => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+            OrderNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
+            DomainException ex => (StatusCodes.Status400BadRequest, ex.Message),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred."),
         };
 
-        context.Response.StatusCode  = status;
+        context.Response.StatusCode = status;
         context.Response.ContentType = "application/problem+json";
 
-        await context.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = status,
-            Title  = feature.Error.GetType().Name,
-            Detail = message
-        });
+        await context.Response.WriteAsJsonAsync(
+            new ProblemDetails
+            {
+                Status = status,
+                Title = feature.Error.GetType().Name,
+                Detail = message,
+            }
+        );
     });
 });
 
@@ -81,7 +88,6 @@ app.MapControllers();
 await app.Services.SubscribeToEventsAsync();
 
 app.Run();
-
 
 // Make the implicit Program class visible to the E2E test project
 public partial class Program { }

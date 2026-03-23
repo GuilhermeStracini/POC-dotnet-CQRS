@@ -10,21 +10,24 @@ namespace CqrsPoC.Application.Behaviors;
 /// for every Command and Query without polluting individual handlers.
 /// </summary>
 public sealed class LoggingBehavior<TRequest, TResponse>(
-    ILogger<LoggingBehavior<TRequest, TResponse>> logger)
-    : IPipelineBehavior<TRequest, TResponse>
+    ILogger<LoggingBehavior<TRequest, TResponse>> logger
+) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var requestName = typeof(TRequest).Name;
         var sw = Stopwatch.StartNew();
 
         logger.LogInformation(
             "[CQRS] ► Handling {RequestName} | Data: {@Request}",
-            requestName, request);
+            requestName,
+            request
+        );
 
         try
         {
@@ -33,16 +36,22 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
 
             logger.LogInformation(
                 "[CQRS] ✓ Handled  {RequestName} in {Elapsed}ms | Response: {@Response}",
-                requestName, sw.ElapsedMilliseconds, response);
+                requestName,
+                sw.ElapsedMilliseconds,
+                response
+            );
 
             return response;
         }
         catch (Exception ex)
         {
             sw.Stop();
-            logger.LogError(ex,
+            logger.LogError(
+                ex,
                 "[CQRS] ✗ Failed   {RequestName} in {Elapsed}ms",
-                requestName, sw.ElapsedMilliseconds);
+                requestName,
+                sw.ElapsedMilliseconds
+            );
             throw;
         }
     }

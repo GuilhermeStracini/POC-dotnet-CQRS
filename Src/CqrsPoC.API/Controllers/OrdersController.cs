@@ -45,10 +45,13 @@ public sealed class OrdersController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
         [FromBody] CreateOrderRequest request,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var id = await mediator.Send(
-            new CreateOrderCommand(request.CustomerName, request.ProductName, request.Amount), ct);
+            new CreateOrderCommand(request.CustomerName, request.ProductName, request.Amount),
+            ct
+        );
 
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
@@ -94,7 +97,8 @@ public sealed class OrdersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Cancel(
         Guid id,
         [FromBody] CancelOrderRequest request,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         await mediator.Send(new CancelOrderCommand(id, request.Reason), ct);
         return NoContent();
@@ -103,4 +107,5 @@ public sealed class OrdersController(IMediator mediator) : ControllerBase
 
 // ── Request body records ─────────────────────────────────────────────────────
 public record CreateOrderRequest(string CustomerName, string ProductName, decimal Amount);
+
 public record CancelOrderRequest(string Reason);

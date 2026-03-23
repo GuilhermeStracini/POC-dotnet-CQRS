@@ -11,7 +11,10 @@ public sealed class OrderCancelledEventHandler(ILogger<OrderCancelledEventHandle
     {
         logger.LogWarning(
             "[EVENT] OrderCancelled | Id={OrderId} | Reason={Reason} | At={CancelledAt:O}",
-            message.OrderId, message.Reason, message.CancelledAt);
+            message.OrderId,
+            message.Reason,
+            message.CancelledAt
+        );
 
         return Task.CompletedTask;
     }

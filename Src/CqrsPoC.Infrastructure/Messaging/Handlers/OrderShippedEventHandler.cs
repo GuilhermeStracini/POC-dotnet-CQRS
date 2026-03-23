@@ -11,7 +11,9 @@ public sealed class OrderShippedEventHandler(ILogger<OrderShippedEventHandler> l
     {
         logger.LogInformation(
             "[EVENT] OrderShipped | Id={OrderId} | At={ShippedAt:O}",
-            message.OrderId, message.ShippedAt);
+            message.OrderId,
+            message.ShippedAt
+        );
 
         return Task.CompletedTask;
     }

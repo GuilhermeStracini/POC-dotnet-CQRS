@@ -38,26 +38,28 @@ public sealed class OrdersWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<AppDbContext>();
 
-            services.AddDbContext<AppDbContext>(opts =>
-                opts.UseInMemoryDatabase(_dbName));
+            services.AddDbContext<AppDbContext>(opts => opts.UseInMemoryDatabase(_dbName));
 
             // ── Replace Rebus+RabbitMQ with InMemory transport ────────────────
             // Remove all Rebus registrations from the real Infrastructure DI
             var rebusDescriptors = services
-                .Where(d => d.ServiceType.FullName?.Contains("Rebus") == true
-                         || d.ImplementationType?.FullName?.Contains("Rebus") == true)
+                .Where(d =>
+                    d.ServiceType.FullName?.Contains("Rebus") == true
+                    || d.ImplementationType?.FullName?.Contains("Rebus") == true
+                )
                 .ToList();
 
             foreach (var d in rebusDescriptors)
                 services.Remove(d);
 
-            services.AddRebus(cfg => cfg
-                .Transport(t => t.UseInMemoryTransport(_network, "e2e-test-queue"))
-                .Options(o =>
-                {
-                    o.SetNumberOfWorkers(1);
-                    o.SetMaxParallelism(1);
-                }));
+            services.AddRebus(cfg =>
+                cfg.Transport(t => t.UseInMemoryTransport(_network, "e2e-test-queue"))
+                    .Options(o =>
+                    {
+                        o.SetNumberOfWorkers(1);
+                        o.SetMaxParallelism(1);
+                    })
+            );
 
             // ── Replace IEventPublisher with a tracked mock ───────────────────
             services.RemoveAll<IEventPublisher>();
@@ -70,8 +72,9 @@ public sealed class OrdersWebApplicationFactory : WebApplicationFactory<Program>
     /// </summary>
     public async Task<Guid> SeedOrderAsync(
         string customer = "Seed Customer",
-        string product  = "Seed Product",
-        decimal amount  = 100m)
+        string product = "Seed Product",
+        decimal amount = 100m
+    )
     {
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

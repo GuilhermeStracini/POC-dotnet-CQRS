@@ -11,7 +11,9 @@ public sealed class OrderConfirmedEventHandler(ILogger<OrderConfirmedEventHandle
     {
         logger.LogInformation(
             "[EVENT] OrderConfirmed | Id={OrderId} | At={ConfirmedAt:O}",
-            message.OrderId, message.ConfirmedAt);
+            message.OrderId,
+            message.ConfirmedAt
+        );
 
         return Task.CompletedTask;
     }

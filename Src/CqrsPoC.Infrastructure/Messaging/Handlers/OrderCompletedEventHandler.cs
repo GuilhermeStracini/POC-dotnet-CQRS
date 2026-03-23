@@ -11,7 +11,9 @@ public sealed class OrderCompletedEventHandler(ILogger<OrderCompletedEventHandle
     {
         logger.LogInformation(
             "[EVENT] OrderCompleted | Id={OrderId} | At={CompletedAt:O}",
-            message.OrderId, message.CompletedAt);
+            message.OrderId,
+            message.CompletedAt
+        );
 
         return Task.CompletedTask;
     }

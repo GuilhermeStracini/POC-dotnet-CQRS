@@ -7,8 +7,8 @@ namespace CqrsPoC.Application.Commands.CreateOrder;
 
 public sealed class CreateOrderCommandHandler(
     IOrderRepository repository,
-    IEventPublisher  publisher)
-    : IRequestHandler<CreateOrderCommand, Guid>
+    IEventPublisher publisher
+) : IRequestHandler<CreateOrderCommand, Guid>
 {
     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken ct)
     {
@@ -18,9 +18,16 @@ public sealed class CreateOrderCommandHandler(
         await repository.SaveChangesAsync(ct);
 
         // Publish integration event via Rebus → RabbitMQ
-        await publisher.PublishAsync(new OrderCreatedEvent(
-            order.Id, order.CustomerName, order.ProductName,
-            order.Amount, order.CreatedAt), ct);
+        await publisher.PublishAsync(
+            new OrderCreatedEvent(
+                order.Id,
+                order.CustomerName,
+                order.ProductName,
+                order.Amount,
+                order.CreatedAt
+            ),
+            ct
+        );
 
         return order.Id;
     }

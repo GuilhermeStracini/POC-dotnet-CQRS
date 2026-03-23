@@ -27,9 +27,9 @@ namespace CqrsPoC.Tests.Integration.Infrastructure;
 /// </summary>
 public sealed class ApplicationPipelineTests : IDisposable
 {
-    private readonly ServiceProvider        _provider;
-    private readonly IMediator              _mediator;
-    private readonly Mock<IEventPublisher>  _publisherMock = new();
+    private readonly ServiceProvider _provider;
+    private readonly IMediator _mediator;
+    private readonly Mock<IEventPublisher> _publisherMock = new();
 
     public ApplicationPipelineTests()
     {
@@ -40,7 +40,8 @@ public sealed class ApplicationPipelineTests : IDisposable
 
         // Real EF Core repo (isolated in-memory database)
         services.AddDbContext<AppDbContext>(opts =>
-            opts.UseInMemoryDatabase($"IntegrationDb_{Guid.NewGuid()}"));
+            opts.UseInMemoryDatabase($"IntegrationDb_{Guid.NewGuid()}")
+        );
         services.AddScoped<IOrderRepository, OrderRepository>();
 
         // Mocked publisher — no RabbitMQ needed
@@ -61,7 +62,8 @@ public sealed class ApplicationPipelineTests : IDisposable
     public async Task CreateOrder_ThenQuery_ReturnsPersistedOrder()
     {
         var id = await _mediator.Send(
-            new CreateOrderCommand("Integration Alice", "Int Widget", 49.99m));
+            new CreateOrderCommand("Integration Alice", "Int Widget", 49.99m)
+        );
 
         var dto = await _mediator.Send(new GetOrderQuery(id));
 
@@ -76,16 +78,13 @@ public sealed class ApplicationPipelineTests : IDisposable
     [Fact]
     public async Task FullLifecycle_CreateConfirmShipComplete_StateMachineProgressesCorrectly()
     {
-        var id = await _mediator.Send(
-            new CreateOrderCommand("Bob", "Big Order", 1000m));
+        var id = await _mediator.Send(new CreateOrderCommand("Bob", "Big Order", 1000m));
 
         await _mediator.Send(new ConfirmOrderCommand(id));
-        (await _mediator.Send(new GetOrderQuery(id)))!
-            .State.Should().Be(OrderState.Confirmed);
+        (await _mediator.Send(new GetOrderQuery(id)))!.State.Should().Be(OrderState.Confirmed);
 
         await _mediator.Send(new ShipOrderCommand(id));
-        (await _mediator.Send(new GetOrderQuery(id)))!
-            .State.Should().Be(OrderState.Shipped);
+        (await _mediator.Send(new GetOrderQuery(id)))!.State.Should().Be(OrderState.Shipped);
 
         await _mediator.Send(new CompleteOrderCommand(id));
         var final = await _mediator.Send(new GetOrderQuery(id));
@@ -96,8 +95,7 @@ public sealed class ApplicationPipelineTests : IDisposable
     [Fact]
     public async Task FullLifecycle_CreateThenCancel_OrderEndsAsCancelled()
     {
-        var id = await _mediator.Send(
-            new CreateOrderCommand("Carol", "Cancellable", 99m));
+        var id = await _mediator.Send(new CreateOrderCommand("Carol", "Cancellable", 99m));
 
         await _mediator.Send(new CancelOrderCommand(id, "Changed mind"));
 
@@ -132,8 +130,7 @@ public sealed class ApplicationPipelineTests : IDisposable
     [Fact]
     public async Task ShipOrder_PendingOrder_ThrowsDomainException()
     {
-        var id = await _mediator.Send(
-            new CreateOrderCommand("Dave", "Prod", 5m));
+        var id = await _mediator.Send(new CreateOrderCommand("Dave", "Prod", 5m));
 
         var act = async () => await _mediator.Send(new ShipOrderCommand(id));
         await act.Should().ThrowAsync<DomainException>().WithMessage("*Ship*Pending*");
@@ -147,8 +144,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         await _mediator.Send(new ShipOrderCommand(id));
         await _mediator.Send(new CompleteOrderCommand(id));
 
-        var act = async () => await _mediator.Send(
-            new CancelOrderCommand(id, "Can't cancel"));
+        var act = async () => await _mediator.Send(new CancelOrderCommand(id, "Can't cancel"));
 
         await act.Should().ThrowAsync<DomainException>();
     }
@@ -162,7 +158,8 @@ public sealed class ApplicationPipelineTests : IDisposable
 
         _publisherMock.Verify(
             p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), default),
-            Times.Once);
+            Times.Once
+        );
     }
 
     [Fact]
@@ -173,13 +170,21 @@ public sealed class ApplicationPipelineTests : IDisposable
         await _mediator.Send(new ShipOrderCommand(id));
         await _mediator.Send(new CompleteOrderCommand(id));
 
-        _publisherMock.Verify(p => p.PublishAsync(
-            It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(),   default), Times.Once);
-        _publisherMock.Verify(p => p.PublishAsync(
-            It.IsAny<CqrsPoC.Contracts.Events.OrderConfirmedEvent>(), default), Times.Once);
-        _publisherMock.Verify(p => p.PublishAsync(
-            It.IsAny<CqrsPoC.Contracts.Events.OrderShippedEvent>(),   default), Times.Once);
-        _publisherMock.Verify(p => p.PublishAsync(
-            It.IsAny<CqrsPoC.Contracts.Events.OrderCompletedEvent>(), default), Times.Once);
+        _publisherMock.Verify(
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), default),
+            Times.Once
+        );
+        _publisherMock.Verify(
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderConfirmedEvent>(), default),
+            Times.Once
+        );
+        _publisherMock.Verify(
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderShippedEvent>(), default),
+            Times.Once
+        );
+        _publisherMock.Verify(
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCompletedEvent>(), default),
+            Times.Once
+        );
     }
 }

@@ -34,7 +34,10 @@ public sealed class OrderStateMachineTests
     [InlineData("", "Widget", 10)]
     [InlineData("   ", "Widget", 10)]
     public void Create_WithBlankCustomerName_ThrowsDomainException(
-        string customerName, string product, decimal amount)
+        string customerName,
+        string product,
+        decimal amount
+    )
     {
         var act = () => Order.Create(customerName, product, amount);
         act.Should().Throw<DomainException>().WithMessage("*Customer name*");
@@ -44,7 +47,10 @@ public sealed class OrderStateMachineTests
     [InlineData("Alice", "", 10)]
     [InlineData("Alice", "   ", 10)]
     public void Create_WithBlankProductName_ThrowsDomainException(
-        string customerName, string product, decimal amount)
+        string customerName,
+        string product,
+        decimal amount
+    )
     {
         var act = () => Order.Create(customerName, product, amount);
         act.Should().Throw<DomainException>().WithMessage("*Product name*");
@@ -101,8 +107,7 @@ public sealed class OrderStateMachineTests
 
         var act = () => order.Ship();
 
-        act.Should().Throw<DomainException>()
-           .WithMessage("*Ship*Pending*");
+        act.Should().Throw<DomainException>().WithMessage("*Ship*Pending*");
     }
 
     // ── Shipped → Completed ───────────────────────────────────────────────────
@@ -259,8 +264,26 @@ public sealed class OrderStateMachineTests
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static Order BuildPending()    => Order.Create("Test Customer", "Test Product", 10m);
-    private static Order BuildConfirmed()  { var o = BuildPending(); o.Confirm(); return o; }
-    private static Order BuildShipped()   { var o = BuildConfirmed(); o.Ship(); return o; }
-    private static Order BuildCompleted() { var o = BuildShipped(); o.Complete(); return o; }
+    private static Order BuildPending() => Order.Create("Test Customer", "Test Product", 10m);
+
+    private static Order BuildConfirmed()
+    {
+        var o = BuildPending();
+        o.Confirm();
+        return o;
+    }
+
+    private static Order BuildShipped()
+    {
+        var o = BuildConfirmed();
+        o.Ship();
+        return o;
+    }
+
+    private static Order BuildCompleted()
+    {
+        var o = BuildShipped();
+        o.Complete();
+        return o;
+    }
 }

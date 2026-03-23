@@ -16,7 +16,11 @@ public sealed class OrderCreatedEventHandler(ILogger<OrderCreatedEventHandler> l
     {
         logger.LogInformation(
             "[EVENT] OrderCreated | Id={OrderId} | Customer={Customer} | Product={Product} | Amount={Amount:C}",
-            message.OrderId, message.CustomerName, message.ProductName, message.Amount);
+            message.OrderId,
+            message.CustomerName,
+            message.ProductName,
+            message.Amount
+        );
 
         return Task.CompletedTask;
     }

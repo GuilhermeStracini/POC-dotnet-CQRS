@@ -5,4 +5,5 @@ public record OrderCreatedEvent(
     string CustomerName,
     string ProductName,
     decimal Amount,
-    DateTime CreatedAt);
+    DateTime CreatedAt
+);

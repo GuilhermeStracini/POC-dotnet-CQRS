@@ -15,7 +15,7 @@ namespace CqrsPoC.Tests.Integration.Persistence;
 /// </summary>
 public sealed class OrderRepositoryTests : IDisposable
 {
-    private readonly AppDbContext    _context;
+    private readonly AppDbContext _context;
     private readonly OrderRepository _repository;
 
     public OrderRepositoryTests()
@@ -24,7 +24,7 @@ public sealed class OrderRepositoryTests : IDisposable
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        _context    = new AppDbContext(options);
+        _context = new AppDbContext(options);
         _repository = new OrderRepository(_context);
     }
 
@@ -115,7 +115,10 @@ public sealed class OrderRepositoryTests : IDisposable
         await _repository.AddAsync(order);
         await _repository.SaveChangesAsync();
 
-        async Task Reload() { _context.ChangeTracker.Clear(); }
+        async Task Reload()
+        {
+            _context.ChangeTracker.Clear();
+        }
 
         await Reload();
         var o = (await _repository.GetByIdAsync(order.Id))!;

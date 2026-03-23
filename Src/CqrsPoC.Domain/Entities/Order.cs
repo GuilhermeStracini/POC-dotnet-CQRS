@@ -15,14 +15,14 @@ namespace CqrsPoC.Domain.Entities;
 public class Order
 {
     // ── Persisted properties ──────────────────────────────────────────────────
-    public Guid      Id           { get; private set; }
-    public string    CustomerName { get; private set; } = string.Empty;
-    public string    ProductName  { get; private set; } = string.Empty;
-    public decimal   Amount       { get; private set; }
-    public OrderState State       { get; private set; }
-    public string?   CancelReason { get; private set; }
-    public DateTime  CreatedAt    { get; private set; }
-    public DateTime? UpdatedAt    { get; private set; }
+    public Guid Id { get; private set; }
+    public string CustomerName { get; private set; } = string.Empty;
+    public string ProductName { get; private set; } = string.Empty;
+    public decimal Amount { get; private set; }
+    public OrderState State { get; private set; }
+    public string? CancelReason { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
 
     // ── State machine (not persisted — rebuilt on every hydration) ─────────────
     private StateMachine<OrderState, OrderTrigger> _machine = default!;
@@ -42,12 +42,12 @@ public class Order
 
         var order = new Order
         {
-            Id           = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             CustomerName = customerName,
-            ProductName  = productName,
-            Amount       = amount,
-            State        = OrderState.Pending,
-            CreatedAt    = DateTime.UtcNow
+            ProductName = productName,
+            Amount = amount,
+            State = OrderState.Pending,
+            CreatedAt = DateTime.UtcNow,
         };
 
         order.BuildMachine();
@@ -94,27 +94,32 @@ public class Order
     {
         // The machine reads/writes State directly on this aggregate.
         _machine = new StateMachine<OrderState, OrderTrigger>(
-            stateAccessor:  () => State,
-            stateMutator:   s => State = s);
+            stateAccessor: () => State,
+            stateMutator: s => State = s
+        );
 
-        _machine.Configure(OrderState.Pending)
+        _machine
+            .Configure(OrderState.Pending)
             .Permit(OrderTrigger.Confirm, OrderState.Confirmed)
-            .Permit(OrderTrigger.Cancel,  OrderState.Cancelled);
-
-        _machine.Configure(OrderState.Confirmed)
-            .Permit(OrderTrigger.Ship,   OrderState.Shipped)
             .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
 
-        _machine.Configure(OrderState.Shipped)
-            .Permit(OrderTrigger.Complete, OrderState.Completed);
+        _machine
+            .Configure(OrderState.Confirmed)
+            .Permit(OrderTrigger.Ship, OrderState.Shipped)
+            .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
+
+        _machine.Configure(OrderState.Shipped).Permit(OrderTrigger.Complete, OrderState.Completed);
 
         // Terminal states — no outgoing transitions
         _machine.Configure(OrderState.Completed);
         _machine.Configure(OrderState.Cancelled);
 
         // Surface invalid transitions as domain exceptions
-        _machine.OnUnhandledTrigger((state, trigger) =>
-            throw new DomainException(
-                $"Cannot apply trigger '{trigger}' when order is in state '{state}'."));
+        _machine.OnUnhandledTrigger(
+            (state, trigger) =>
+                throw new DomainException(
+                    $"Cannot apply trigger '{trigger}' when order is in state '{state}'."
+                )
+        );
     }
 }
