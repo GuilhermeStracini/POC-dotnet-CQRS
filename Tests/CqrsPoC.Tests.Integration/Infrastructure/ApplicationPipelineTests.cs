@@ -157,7 +157,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         await _mediator.Send(new CreateOrderCommand("Frank", "Prod", 77m));
 
         _publisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), CancellationToken.None),
             Times.Once
         );
     }
@@ -171,19 +171,19 @@ public sealed class ApplicationPipelineTests : IDisposable
         await _mediator.Send(new CompleteOrderCommand(id));
 
         _publisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(), CancellationToken.None),
             Times.Once
         );
         _publisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderConfirmedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderConfirmedEvent>(), CancellationToken.None),
             Times.Once
         );
         _publisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderShippedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderShippedEvent>(), CancellationToken.None),
             Times.Once
         );
         _publisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCompletedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<CqrsPoC.Contracts.Events.OrderCompletedEvent>(), CancellationToken.None),
             Times.Once
         );
     }

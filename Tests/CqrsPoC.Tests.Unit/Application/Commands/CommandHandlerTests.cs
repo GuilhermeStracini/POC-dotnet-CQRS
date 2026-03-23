@@ -34,7 +34,7 @@ public sealed class CommandHandlerTests
         // Arrange
         Order? saved = null;
         _repoMock
-            .Setup(r => r.AddAsync(It.IsAny<Order>(), default))
+            .Setup(r => r.AddAsync(It.IsAny<Order>(), CancellationToken.None))
             .Callback<Order, CancellationToken>((o, _) => saved = o)
             .Returns(Task.CompletedTask);
 
@@ -42,7 +42,7 @@ public sealed class CommandHandlerTests
         var command = new CreateOrderCommand("Alice", "Widget", 100m);
 
         // Act
-        var id = await handler.Handle(command, default);
+        var id = await handler.Handle(command, CancellationToken.None);
 
         // Assert — returned ID matches persisted entity
         id.Should().NotBe(Guid.Empty);
@@ -50,12 +50,12 @@ public sealed class CommandHandlerTests
         saved!.Id.Should().Be(id);
         saved.State.Should().Be(OrderState.Pending);
 
-        _repoMock.Verify(r => r.SaveChangesAsync(default), Times.Once);
+        _repoMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
         _pubMock.Verify(
             p =>
                 p.PublishAsync(
                     It.Is<OrderCreatedEvent>(e => e.OrderId == id && e.CustomerName == "Alice"),
-                    default
+                    CancellationToken.None
                 ),
             Times.Once
         );
@@ -65,16 +65,16 @@ public sealed class CommandHandlerTests
     public async Task CreateOrder_RepositoryThrows_DoesNotPublishEvent()
     {
         _repoMock
-            .Setup(r => r.SaveChangesAsync(default))
+            .Setup(r => r.SaveChangesAsync(CancellationToken.None))
             .ThrowsAsync(new InvalidOperationException("DB error"));
 
         var handler = new CreateOrderCommandHandler(_repoMock.Object, _pubMock.Object);
 
         var act = async () =>
-            await handler.Handle(new CreateOrderCommand("Alice", "Widget", 50m), default);
+            await handler.Handle(new CreateOrderCommand("Alice", "Widget", 50m), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
-        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), default), Times.Never);
+        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), CancellationToken.None), Times.Never);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -88,13 +88,13 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new ConfirmOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        await handler.Handle(new ConfirmOrderCommand(order.Id), default);
+        await handler.Handle(new ConfirmOrderCommand(order.Id), CancellationToken.None);
 
         order.State.Should().Be(OrderState.Confirmed);
-        _repoMock.Verify(r => r.UpdateAsync(order, default), Times.Once);
-        _repoMock.Verify(r => r.SaveChangesAsync(default), Times.Once);
+        _repoMock.Verify(r => r.UpdateAsync(order, CancellationToken.None), Times.Once);
+        _repoMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
         _pubMock.Verify(
-            p => p.PublishAsync(It.Is<OrderConfirmedEvent>(e => e.OrderId == order.Id), default),
+            p => p.PublishAsync(It.Is<OrderConfirmedEvent>(e => e.OrderId == order.Id), CancellationToken.None),
             Times.Once
         );
     }
@@ -102,11 +102,11 @@ public sealed class CommandHandlerTests
     [Fact]
     public async Task ConfirmOrder_OrderNotFound_ThrowsOrderNotFoundException()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Order?)null);
+        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None)).ReturnsAsync((Order?)null);
 
         var handler = new ConfirmOrderCommandHandler(_repoMock.Object, _pubMock.Object);
         var act = async () =>
-            await handler.Handle(new ConfirmOrderCommand(Guid.NewGuid()), default);
+            await handler.Handle(new ConfirmOrderCommand(Guid.NewGuid()), CancellationToken.None);
 
         await act.Should().ThrowAsync<OrderNotFoundException>();
     }
@@ -119,10 +119,10 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new ConfirmOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        var act = async () => await handler.Handle(new ConfirmOrderCommand(order.Id), default);
+        var act = async () => await handler.Handle(new ConfirmOrderCommand(order.Id), CancellationToken.None);
 
         await act.Should().ThrowAsync<DomainException>();
-        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderConfirmedEvent>(), default), Times.Never);
+        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderConfirmedEvent>(), CancellationToken.None), Times.Never);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -136,11 +136,11 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new ShipOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        await handler.Handle(new ShipOrderCommand(order.Id), default);
+        await handler.Handle(new ShipOrderCommand(order.Id), CancellationToken.None);
 
         order.State.Should().Be(OrderState.Shipped);
         _pubMock.Verify(
-            p => p.PublishAsync(It.Is<OrderShippedEvent>(e => e.OrderId == order.Id), default),
+            p => p.PublishAsync(It.Is<OrderShippedEvent>(e => e.OrderId == order.Id), CancellationToken.None),
             Times.Once
         );
     }
@@ -152,7 +152,7 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new ShipOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        var act = async () => await handler.Handle(new ShipOrderCommand(order.Id), default);
+        var act = async () => await handler.Handle(new ShipOrderCommand(order.Id), CancellationToken.None);
 
         await act.Should().ThrowAsync<DomainException>().WithMessage("*Ship*Pending*");
     }
@@ -160,10 +160,10 @@ public sealed class CommandHandlerTests
     [Fact]
     public async Task ShipOrder_OrderNotFound_ThrowsOrderNotFoundException()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Order?)null);
+        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None)).ReturnsAsync((Order?)null);
 
         var handler = new ShipOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        var act = async () => await handler.Handle(new ShipOrderCommand(Guid.NewGuid()), default);
+        var act = async () => await handler.Handle(new ShipOrderCommand(Guid.NewGuid()), CancellationToken.None);
 
         await act.Should().ThrowAsync<OrderNotFoundException>();
     }
@@ -179,11 +179,11 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new CompleteOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        await handler.Handle(new CompleteOrderCommand(order.Id), default);
+        await handler.Handle(new CompleteOrderCommand(order.Id), CancellationToken.None);
 
         order.State.Should().Be(OrderState.Completed);
         _pubMock.Verify(
-            p => p.PublishAsync(It.Is<OrderCompletedEvent>(e => e.OrderId == order.Id), default),
+            p => p.PublishAsync(It.Is<OrderCompletedEvent>(e => e.OrderId == order.Id), CancellationToken.None),
             Times.Once
         );
     }
@@ -195,7 +195,7 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new CompleteOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        var act = async () => await handler.Handle(new CompleteOrderCommand(order.Id), default);
+        var act = async () => await handler.Handle(new CompleteOrderCommand(order.Id), CancellationToken.None);
 
         await act.Should().ThrowAsync<DomainException>().WithMessage("*Complete*Confirmed*");
     }
@@ -203,11 +203,11 @@ public sealed class CommandHandlerTests
     [Fact]
     public async Task CompleteOrder_OrderNotFound_ThrowsOrderNotFoundException()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Order?)null);
+        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None)).ReturnsAsync((Order?)null);
 
         var handler = new CompleteOrderCommandHandler(_repoMock.Object, _pubMock.Object);
         var act = async () =>
-            await handler.Handle(new CompleteOrderCommand(Guid.NewGuid()), default);
+            await handler.Handle(new CompleteOrderCommand(Guid.NewGuid()), CancellationToken.None);
 
         await act.Should().ThrowAsync<OrderNotFoundException>();
     }
@@ -223,7 +223,7 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new CancelOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        await handler.Handle(new CancelOrderCommand(order.Id, "Customer request"), default);
+        await handler.Handle(new CancelOrderCommand(order.Id, "Customer request"), CancellationToken.None);
 
         order.State.Should().Be(OrderState.Cancelled);
         order.CancelReason.Should().Be("Customer request");
@@ -233,7 +233,7 @@ public sealed class CommandHandlerTests
                     It.Is<OrderCancelledEvent>(e =>
                         e.OrderId == order.Id && e.Reason == "Customer request"
                     ),
-                    default
+                    CancellationToken.None
                 ),
             Times.Once
         );
@@ -246,7 +246,7 @@ public sealed class CommandHandlerTests
         SetupRepoGetById(order);
 
         var handler = new CancelOrderCommandHandler(_repoMock.Object, _pubMock.Object);
-        await handler.Handle(new CancelOrderCommand(order.Id, "Out of stock"), default);
+        await handler.Handle(new CancelOrderCommand(order.Id, "Out of stock"), CancellationToken.None);
 
         order.State.Should().Be(OrderState.Cancelled);
     }
@@ -259,20 +259,20 @@ public sealed class CommandHandlerTests
 
         var handler = new CancelOrderCommandHandler(_repoMock.Object, _pubMock.Object);
         var act = async () =>
-            await handler.Handle(new CancelOrderCommand(order.Id, "Too late"), default);
+            await handler.Handle(new CancelOrderCommand(order.Id, "Too late"), CancellationToken.None);
 
         await act.Should().ThrowAsync<DomainException>();
-        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderCancelledEvent>(), default), Times.Never);
+        _pubMock.Verify(p => p.PublishAsync(It.IsAny<OrderCancelledEvent>(), CancellationToken.None), Times.Never);
     }
 
     [Fact]
     public async Task CancelOrder_OrderNotFound_ThrowsOrderNotFoundException()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Order?)null);
+        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None)).ReturnsAsync((Order?)null);
 
         var handler = new CancelOrderCommandHandler(_repoMock.Object, _pubMock.Object);
         var act = async () =>
-            await handler.Handle(new CancelOrderCommand(Guid.NewGuid(), "reason"), default);
+            await handler.Handle(new CancelOrderCommand(Guid.NewGuid(), "reason"), CancellationToken.None);
 
         await act.Should().ThrowAsync<OrderNotFoundException>();
     }
@@ -280,7 +280,7 @@ public sealed class CommandHandlerTests
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private void SetupRepoGetById(Order order) =>
-        _repoMock.Setup(r => r.GetByIdAsync(order.Id, default)).ReturnsAsync(order);
+        _repoMock.Setup(r => r.GetByIdAsync(order.Id, CancellationToken.None)).ReturnsAsync(order);
 
     private static Order BuildPendingOrder() => Order.Create("Test", "Product", 50m);
 

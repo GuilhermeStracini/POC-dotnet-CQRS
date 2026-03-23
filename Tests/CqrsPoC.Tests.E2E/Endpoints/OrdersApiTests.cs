@@ -72,7 +72,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
         );
 
         _factory.PublisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), default),
+            p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), CancellationToken.None),
             Times.Once
         );
     }

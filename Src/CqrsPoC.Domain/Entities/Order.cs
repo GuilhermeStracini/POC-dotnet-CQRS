@@ -25,7 +25,7 @@ public class Order
     public DateTime? UpdatedAt { get; private set; }
 
     // ── State machine (not persisted — rebuilt on every hydration) ─────────────
-    private StateMachine<OrderState, OrderTrigger> _machine = default!;
+    private StateMachine<OrderState, OrderTrigger> _machine = null!;
 
     // ── EF Core parameterless constructor ─────────────────────────────────────
     private Order() => BuildMachine();
