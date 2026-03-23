@@ -79,3 +79,7 @@ app.MapControllers();
 await app.Services.SubscribeToEventsAsync();
 
 app.Run();
+
+
+// Make the implicit Program class visible to the E2E test project
+public partial class Program { }

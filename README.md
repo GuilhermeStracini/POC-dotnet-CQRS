@@ -383,3 +383,59 @@ This keeps the machine as an enforcement mechanism — not just documentation.
 Used for simplicity in this PoC. Swap `UseInMemoryDatabase` for
 `UseSqlServer` / `UseNpgsql` / etc. in `Infrastructure/DependencyInjection.cs`
 and add a migration to go production-ready.
+
+---
+
+## Testing
+
+The solution contains **three test projects** under the `/Tests` folder, covering the full testing pyramid.
+
+```
+Tests/
+├── CqrsPoC.Tests.Unit/            # Fast, isolated — no I/O, pure logic
+│   ├── Domain/
+│   │   └── OrderStateMachineTests.cs    (26 tests)
+│   └── Application/
+│       ├── Commands/CommandHandlerTests.cs  (17 tests)
+│       ├── Queries/QueryHandlerTests.cs     (8 tests)
+│       └── Behaviors/LoggingBehaviorTests.cs (4 tests)
+│
+├── CqrsPoC.Tests.Integration/    # Real EF Core + real Rebus (in-memory transport)
+│   ├── Persistence/
+│   │   └── OrderRepositoryTests.cs      (8 tests)
+│   ├── Messaging/
+│   │   └── RebusEventHandlerTests.cs    (5 tests)
+│   └── Infrastructure/
+│       └── ApplicationPipelineTests.cs  (10 tests)
+│
+└── CqrsPoC.Tests.E2E/            # Full HTTP stack via WebApplicationFactory
+    └── Endpoints/
+        └── OrdersApiTests.cs            (20 tests)
+```
+
+### Run all tests
+
+```bash
+dotnet test
+```
+
+### Run by project
+
+```bash
+# Unit only
+dotnet test Tests/CqrsPoC.Tests.Unit
+
+# Integration only
+dotnet test Tests/CqrsPoC.Tests.Integration
+
+# E2E only
+dotnet test Tests/CqrsPoC.Tests.E2E
+```
+
+### Test strategy
+
+| Layer | What's tested | Mocked |
+|---|---|---|
+| **Unit** | Domain state machine transitions, command/query handler orchestration, MediatR pipeline behaviour | `IOrderRepository`, `IEventPublisher` |
+| **Integration** | EF Core repository CRUD, Rebus in-memory event delivery, full MediatR+handler pipeline | `IEventPublisher` only (no RabbitMQ) |
+| **E2E** | All HTTP endpoints, status codes, response bodies, Problem Details errors, full lifecycle | `IEventPublisher` (Moq), RabbitMQ (InMemory Rebus transport), EF Core (InMemory DB) |
