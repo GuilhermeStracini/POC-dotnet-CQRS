@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stateless" Version="5.20.1" />
+    <PackageReference Include="Stateless" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CqrsPoC.Contracts\CqrsPoC.Contracts.csproj" />
