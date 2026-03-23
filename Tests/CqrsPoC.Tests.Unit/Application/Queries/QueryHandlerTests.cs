@@ -5,6 +5,7 @@ using CqrsPoC.Domain.Entities;
 using CqrsPoC.Domain.Enums;
 using FluentAssertions;
 using Moq;
+using Xunit;
 
 namespace CqrsPoC.Tests.Unit.Application.Queries;
 

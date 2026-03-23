@@ -3,6 +3,7 @@ using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace CqrsPoC.Tests.Unit.Application.Behaviors;
 

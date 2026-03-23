@@ -10,6 +10,7 @@ using CqrsPoC.Domain.Enums;
 using CqrsPoC.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
+using Xunit;
 
 namespace CqrsPoC.Tests.Unit.Application.Commands;
 

@@ -2,6 +2,7 @@ using CqrsPoC.Application;
 using CqrsPoC.Domain.Exceptions;
 using CqrsPoC.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +13,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new()
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title   = "CQRS PoC — Order Management API",
         Version = "v1",

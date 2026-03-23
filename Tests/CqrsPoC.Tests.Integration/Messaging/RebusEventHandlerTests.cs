@@ -7,6 +7,7 @@ using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;
+using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Messaging;
 

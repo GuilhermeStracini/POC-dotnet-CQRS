@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Infrastructure;
 

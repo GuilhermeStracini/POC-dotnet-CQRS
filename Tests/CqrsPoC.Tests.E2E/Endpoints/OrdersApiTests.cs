@@ -7,6 +7,7 @@ using CqrsPoC.Domain.Enums;
 using CqrsPoC.Tests.E2E.Infrastructure;
 using FluentAssertions;
 using Moq;
+using Xunit;
 
 namespace CqrsPoC.Tests.E2E.Endpoints;
 
