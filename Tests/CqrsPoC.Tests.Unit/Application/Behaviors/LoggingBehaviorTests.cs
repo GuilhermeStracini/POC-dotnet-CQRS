@@ -28,9 +28,9 @@ public sealed class LoggingBehaviorTests
         var request  = new TestRequest("hello");
         var expected = new TestResponse("world");
 
-        RequestHandlerDelegate<TestResponse> next = () => Task.FromResult(expected);
+        Task<TestResponse> Next(CancellationToken _) => Task.FromResult(expected);
 
-        var result = await behavior.Handle(request, next, default);
+        var result = await behavior.Handle(request, Next, CancellationToken.None);
 
         result.Should().Be(expected);
     }
@@ -39,10 +39,10 @@ public sealed class LoggingBehaviorTests
     public async Task Handle_SuccessfulRequest_LogsInformationTwice()
     {
         var behavior = new LoggingBehavior<TestRequest, TestResponse>(_loggerMock.Object);
-        RequestHandlerDelegate<TestResponse> next =
-            () => Task.FromResult(new TestResponse("ok"));
 
-        await behavior.Handle(new TestRequest("x"), next, default);
+        Task<TestResponse> Next(CancellationToken _) => Task.FromResult(new TestResponse("ok"));
+
+        await behavior.Handle(new TestRequest("x"), Next, CancellationToken.None);
 
         // Expect one entry log and one exit log (both Information)
         _loggerMock.Verify(
@@ -60,9 +60,9 @@ public sealed class LoggingBehaviorTests
     {
         var behavior  = new LoggingBehavior<TestRequest, TestResponse>(_loggerMock.Object);
         var exception = new InvalidOperationException("boom");
-        RequestHandlerDelegate<TestResponse> next = () => throw exception;
+        Task<TestResponse> Next(CancellationToken _) => throw exception;
 
-        var act = async () => await behavior.Handle(new TestRequest("x"), next, default);
+        var act = async () => await behavior.Handle(new TestRequest("x"), Next, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("boom");
 
@@ -80,13 +80,12 @@ public sealed class LoggingBehaviorTests
     public async Task Handle_SlowRequest_StillReturnsCorrectResponse()
     {
         var behavior = new LoggingBehavior<TestRequest, TestResponse>(_loggerMock.Object);
-        RequestHandlerDelegate<TestResponse> next = async () =>
+        Task<TestResponse> Next(CancellationToken _) => Task.Run(async () =>
         {
             await Task.Delay(50); // simulate async work
             return new TestResponse("done");
-        };
-
-        var result = await behavior.Handle(new TestRequest("slow"), next, default);
+        });     
+        var result = await behavior.Handle(new TestRequest("slow"), Next, CancellationToken.None);
 
         result.Result.Should().Be("done");
     }
