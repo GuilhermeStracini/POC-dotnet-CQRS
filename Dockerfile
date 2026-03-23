@@ -4,17 +4,17 @@ WORKDIR /repo
 
 # Copy solution & project files first (layer-cache friendly)
 COPY CqrsPoC.sln ./
-COPY src/CqrsPoC.Contracts/CqrsPoC.Contracts.csproj         src/CqrsPoC.Contracts/
-COPY src/CqrsPoC.Domain/CqrsPoC.Domain.csproj               src/CqrsPoC.Domain/
-COPY src/CqrsPoC.Application/CqrsPoC.Application.csproj     src/CqrsPoC.Application/
-COPY src/CqrsPoC.Infrastructure/CqrsPoC.Infrastructure.csproj src/CqrsPoC.Infrastructure/
-COPY src/CqrsPoC.API/CqrsPoC.API.csproj                     src/CqrsPoC.API/
+COPY Src/CqrsPoC.Contracts/CqrsPoC.Contracts.csproj         Src/CqrsPoC.Contracts/
+COPY Src/CqrsPoC.Domain/CqrsPoC.Domain.csproj               Src/CqrsPoC.Domain/
+COPY Src/CqrsPoC.Application/CqrsPoC.Application.csproj     Src/CqrsPoC.Application/
+COPY Src/CqrsPoC.Infrastructure/CqrsPoC.Infrastructure.csproj Src/CqrsPoC.Infrastructure/
+COPY Src/CqrsPoC.API/CqrsPoC.API.csproj                     Src/CqrsPoC.API/
 
 RUN dotnet restore
 
 # Copy everything else and publish
 COPY . .
-RUN dotnet publish src/CqrsPoC.API/CqrsPoC.API.csproj \
+RUN dotnet publish Src/CqrsPoC.API/CqrsPoC.API.csproj \
     -c Release \
     -o /app/publish \
     --no-restore

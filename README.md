@@ -113,7 +113,7 @@ CqrsPoC/
 ├── CqrsPoC.sln
 ├── Dockerfile
 ├── docker-compose.yml
-└── src/
+└── Src/
     ├── CqrsPoC.Contracts/          # Shared integration event records
     │   └── Events/
     │       ├── OrderCreatedEvent.cs
@@ -287,7 +287,7 @@ docker run -d \
 2. **Run the API:**
 
 ```bash
-cd src/CqrsPoC.API
+cd Src/CqrsPoC.API
 dotnet run
 # Swagger UI → https://localhost:5001  (or check the console output)
 ```
