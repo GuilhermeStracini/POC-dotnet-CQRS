@@ -7,6 +7,7 @@ using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;
+using Stateless.Graph;
 using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Messaging;
@@ -21,6 +22,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
     private const string QueueName = "test-orders-queue";
 
     private readonly BuiltinHandlerActivator _activator;
+    private readonly IBusStarter _starter;
     private readonly IBus _bus;
     private readonly InMemNetwork _network;
 
@@ -29,7 +31,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
         _network = new InMemNetwork();
         _activator = new BuiltinHandlerActivator();
 
-        _bus = Configure
+        _starter = Configure
             .With(_activator)
             .Transport(t => t.UseInMemoryTransport(_network, QueueName))
             .Routing(r =>
@@ -40,7 +42,10 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
                     .Map<OrderCompletedEvent>(QueueName)
                     .Map<OrderCancelledEvent>(QueueName)
             )
-            .Start();
+            .Options(o => o.SetNumberOfWorkers(0))
+            .Create();
+
+        _bus = _starter.Bus;
     }
 
     public async ValueTask DisposeAsync()
@@ -66,6 +71,8 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             await handler.Handle(msg);
             received.SetResult(msg);
         });
+
+        _starter.Start();
 
         var @event = new OrderCreatedEvent(
             Guid.NewGuid(),
@@ -101,6 +108,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             await handler.Handle(msg);
             received.SetResult(msg);
         });
+        _starter.Start();
 
         var @event = new OrderConfirmedEvent(Guid.NewGuid(), DateTime.UtcNow);
         await _bus.Send(@event);
@@ -125,6 +133,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             await handler.Handle(msg);
             received.SetResult(msg);
         });
+        _starter.Start();
 
         await _bus.Send(new OrderShippedEvent(Guid.NewGuid(), DateTime.UtcNow));
         var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -149,6 +158,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             await handler.Handle(msg);
             received.SetResult(msg);
         });
+        _starter.Start();
 
         await _bus.Send(new OrderCompletedEvent(Guid.NewGuid(), DateTime.UtcNow));
         var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -173,6 +183,7 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             await handler.Handle(msg);
             received.SetResult(msg);
         });
+        _starter.Start();
 
         var @event = new OrderCancelledEvent(Guid.NewGuid(), "Test reason", DateTime.UtcNow);
         await _bus.Send(@event);
