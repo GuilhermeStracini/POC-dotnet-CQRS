@@ -5,7 +5,6 @@ using CqrsPoC.Application.Commands.CreateOrder;
 using CqrsPoC.Application.Commands.ShipOrder;
 using CqrsPoC.Application.Queries.GetAllOrders;
 using CqrsPoC.Application.Queries.GetOrder;
-using CqrsPoC.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

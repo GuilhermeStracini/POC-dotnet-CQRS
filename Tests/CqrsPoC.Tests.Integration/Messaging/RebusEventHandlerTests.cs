@@ -185,7 +185,7 @@ internal sealed class CapturingLogger<T> : ILogger<T>
 {
     public List<LogEntry> Entries { get; } = [];
 
-    public IDisposable? BeginScope<TState>(TState state)
+    public IDisposable BeginScope<TState>(TState state)
         where TState : notnull => NullLogger.Instance.BeginScope(state);
 
     public bool IsEnabled(LogLevel logLevel) => true;

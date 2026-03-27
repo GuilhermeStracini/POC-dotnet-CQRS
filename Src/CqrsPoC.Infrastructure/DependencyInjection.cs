@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
-using Rebus.ServiceProvider;
 
 namespace CqrsPoC.Infrastructure;
 

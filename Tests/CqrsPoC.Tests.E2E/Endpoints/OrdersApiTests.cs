@@ -144,7 +144,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var dto = await response.Content.ReadFromJsonAsync<OrderDto>(JsonOpts);
         dto.Should().NotBeNull();
-        dto!.Id.Should().Be(id);
+        dto.Id.Should().Be(id);
         dto.CustomerName.Should().Be("Get Test");
         dto.State.Should().Be(OrderState.Pending);
         dto.PermittedTriggers.Should().Contain("Confirm");

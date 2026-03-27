@@ -68,7 +68,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         var dto = await _mediator.Send(new GetOrderQuery(id));
 
         dto.Should().NotBeNull();
-        dto!.Id.Should().Be(id);
+        dto.Id.Should().Be(id);
         dto.CustomerName.Should().Be("Integration Alice");
         dto.State.Should().Be(OrderState.Pending);
     }
@@ -159,7 +159,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         _publisherMock.Verify(
             p =>
                 p.PublishAsync(
-                    It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(),
+                    It.IsAny<Contracts.Events.OrderCreatedEvent>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -177,7 +177,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         _publisherMock.Verify(
             p =>
                 p.PublishAsync(
-                    It.IsAny<CqrsPoC.Contracts.Events.OrderCreatedEvent>(),
+                    It.IsAny<Contracts.Events.OrderCreatedEvent>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -185,7 +185,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         _publisherMock.Verify(
             p =>
                 p.PublishAsync(
-                    It.IsAny<CqrsPoC.Contracts.Events.OrderConfirmedEvent>(),
+                    It.IsAny<Contracts.Events.OrderConfirmedEvent>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -193,7 +193,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         _publisherMock.Verify(
             p =>
                 p.PublishAsync(
-                    It.IsAny<CqrsPoC.Contracts.Events.OrderShippedEvent>(),
+                    It.IsAny<Contracts.Events.OrderShippedEvent>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -201,7 +201,7 @@ public sealed class ApplicationPipelineTests : IDisposable
         _publisherMock.Verify(
             p =>
                 p.PublishAsync(
-                    It.IsAny<CqrsPoC.Contracts.Events.OrderCompletedEvent>(),
+                    It.IsAny<Contracts.Events.OrderCompletedEvent>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
