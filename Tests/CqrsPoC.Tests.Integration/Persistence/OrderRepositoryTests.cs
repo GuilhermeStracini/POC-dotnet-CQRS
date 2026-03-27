@@ -4,7 +4,6 @@ using CqrsPoC.Infrastructure.Persistence;
 using CqrsPoC.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Persistence;
 

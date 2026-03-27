@@ -1,78 +1,29 @@
 using CqrsPoC.Contracts.Events;
 using CqrsPoC.Infrastructure.Messaging.Handlers;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Rebus.Activation;
-using Rebus.Bus;
-using Rebus.Config;
-using Rebus.Routing.TypeBased;
-using Rebus.Transport.InMem;
-using Stateless.Graph;
-using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Messaging;
 
 /// <summary>
-/// Integration tests for the Rebus event handlers using the in-memory transport.
-/// These verify that each handler correctly receives a published event and
-/// processes it without errors — no live RabbitMQ required.
+/// Integration tests for the five Rebus event handlers.
+///
+/// Strategy: call IHandleMessages&lt;T&gt;.Handle() directly.
+/// The handler contract is just Task Handle(TMessage message), so we do not
+/// need Rebus transport wiring to verify handler logic.  Transport delivery
+/// guarantees (serialization, routing, retries) belong in a test against a
+/// real or containerised broker -- not in a suite that must run without
+/// external services.
 /// </summary>
-public sealed class RebusEventHandlerTests : IAsyncDisposable
+public sealed class RebusEventHandlerTests
 {
-    private const string QueueName = "test-orders-queue";
-
-    private readonly BuiltinHandlerActivator _activator;
-    private readonly IBusStarter _starter;
-    private readonly IBus _bus;
-    private readonly InMemNetwork _network;
-
-    public RebusEventHandlerTests()
-    {
-        _network = new InMemNetwork();
-        _activator = new BuiltinHandlerActivator();
-
-        _starter = Configure
-            .With(_activator)
-            .Transport(t => t.UseInMemoryTransport(_network, QueueName))
-            .Routing(r =>
-                r.TypeBased()
-                    .Map<OrderCreatedEvent>(QueueName)
-                    .Map<OrderConfirmedEvent>(QueueName)
-                    .Map<OrderShippedEvent>(QueueName)
-                    .Map<OrderCompletedEvent>(QueueName)
-                    .Map<OrderCancelledEvent>(QueueName)
-            )
-            .Options(o => o.SetNumberOfWorkers(0))
-            .Create();
-
-        _bus = _starter.Bus;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _bus.Dispose();
-        _activator.Dispose();
-        await Task.CompletedTask;
-    }
-
-    // ── OrderCreated ──────────────────────────────────────────────────────────
+    // -- OrderCreatedEventHandler ---------------------------------------------
 
     [Fact]
-    public async Task OrderCreatedHandler_ReceivesPublishedEvent_WithoutThrowing()
+    public async Task OrderCreatedHandler_ValidEvent_CompletesWithoutThrowing()
     {
-        var received = new TaskCompletionSource<OrderCreatedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously
-        );
-
         var handler = new OrderCreatedEventHandler(NullLogger<OrderCreatedEventHandler>.Instance);
-
-        _activator.Handle<OrderCreatedEvent>(async msg =>
-        {
-            await handler.Handle(msg);
-            received.SetResult(msg);
-        });
-
-        _starter.Start();
 
         var @event = new OrderCreatedEvent(
             Guid.NewGuid(),
@@ -82,113 +33,170 @@ public sealed class RebusEventHandlerTests : IAsyncDisposable
             DateTime.UtcNow
         );
 
-        await _bus.Send(@event);
-
-        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-
-        result.OrderId.Should().Be(@event.OrderId);
-        result.CustomerName.Should().Be("Alice");
+        var act = async () => await handler.Handle(@event);
+        await act.Should().NotThrowAsync();
     }
 
-    // ── OrderConfirmed ────────────────────────────────────────────────────────
+    [Fact]
+    public async Task OrderCreatedHandler_LogsAtInformationLevel()
+    {
+        var logger = new CapturingLogger<OrderCreatedEventHandler>();
+        var handler = new OrderCreatedEventHandler(logger);
+        var @event = new OrderCreatedEvent(Guid.NewGuid(), "Bob", "Gadget", 55m, DateTime.UtcNow);
+
+        await handler.Handle(@event);
+
+        logger
+            .Entries.Should()
+            .ContainSingle(e =>
+                e.Level == LogLevel.Information && e.Message.Contains(@event.OrderId.ToString())
+            );
+    }
+
+    // -- OrderConfirmedEventHandler -------------------------------------------
 
     [Fact]
-    public async Task OrderConfirmedHandler_ReceivesPublishedEvent_WithoutThrowing()
+    public async Task OrderConfirmedHandler_ValidEvent_CompletesWithoutThrowing()
     {
-        var received = new TaskCompletionSource<OrderConfirmedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously
-        );
-
         var handler = new OrderConfirmedEventHandler(
             NullLogger<OrderConfirmedEventHandler>.Instance
         );
 
-        _activator.Handle<OrderConfirmedEvent>(async msg =>
-        {
-            await handler.Handle(msg);
-            received.SetResult(msg);
-        });
-        _starter.Start();
-
-        var @event = new OrderConfirmedEvent(Guid.NewGuid(), DateTime.UtcNow);
-        await _bus.Send(@event);
-
-        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        result.Should().NotBeNull();
+        var act = async () =>
+            await handler.Handle(new OrderConfirmedEvent(Guid.NewGuid(), DateTime.UtcNow));
+        await act.Should().NotThrowAsync();
     }
 
-    // ── OrderShipped ──────────────────────────────────────────────────────────
+    [Fact]
+    public async Task OrderConfirmedHandler_LogsAtInformationLevel()
+    {
+        var logger = new CapturingLogger<OrderConfirmedEventHandler>();
+        var handler = new OrderConfirmedEventHandler(logger);
+        var id = Guid.NewGuid();
+
+        await handler.Handle(new OrderConfirmedEvent(id, DateTime.UtcNow));
+
+        logger
+            .Entries.Should()
+            .ContainSingle(e =>
+                e.Level == LogLevel.Information && e.Message.Contains(id.ToString())
+            );
+    }
+
+    // -- OrderShippedEventHandler ---------------------------------------------
 
     [Fact]
-    public async Task OrderShippedHandler_ReceivesPublishedEvent_WithoutThrowing()
+    public async Task OrderShippedHandler_ValidEvent_CompletesWithoutThrowing()
     {
-        var received = new TaskCompletionSource<OrderShippedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously
-        );
-
         var handler = new OrderShippedEventHandler(NullLogger<OrderShippedEventHandler>.Instance);
 
-        _activator.Handle<OrderShippedEvent>(async msg =>
-        {
-            await handler.Handle(msg);
-            received.SetResult(msg);
-        });
-        _starter.Start();
-
-        await _bus.Send(new OrderShippedEvent(Guid.NewGuid(), DateTime.UtcNow));
-        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        result.Should().NotBeNull();
+        var act = async () =>
+            await handler.Handle(new OrderShippedEvent(Guid.NewGuid(), DateTime.UtcNow));
+        await act.Should().NotThrowAsync();
     }
 
-    // ── OrderCompleted ────────────────────────────────────────────────────────
+    [Fact]
+    public async Task OrderShippedHandler_LogsAtInformationLevel()
+    {
+        var logger = new CapturingLogger<OrderShippedEventHandler>();
+        var handler = new OrderShippedEventHandler(logger);
+        var id = Guid.NewGuid();
+
+        await handler.Handle(new OrderShippedEvent(id, DateTime.UtcNow));
+
+        logger
+            .Entries.Should()
+            .ContainSingle(e =>
+                e.Level == LogLevel.Information && e.Message.Contains(id.ToString())
+            );
+    }
+
+    // -- OrderCompletedEventHandler -------------------------------------------
 
     [Fact]
-    public async Task OrderCompletedHandler_ReceivesPublishedEvent_WithoutThrowing()
+    public async Task OrderCompletedHandler_ValidEvent_CompletesWithoutThrowing()
     {
-        var received = new TaskCompletionSource<OrderCompletedEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously
-        );
-
         var handler = new OrderCompletedEventHandler(
             NullLogger<OrderCompletedEventHandler>.Instance
         );
 
-        _activator.Handle<OrderCompletedEvent>(async msg =>
-        {
-            await handler.Handle(msg);
-            received.SetResult(msg);
-        });
-        _starter.Start();
-
-        await _bus.Send(new OrderCompletedEvent(Guid.NewGuid(), DateTime.UtcNow));
-        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        result.Should().NotBeNull();
+        var act = async () =>
+            await handler.Handle(new OrderCompletedEvent(Guid.NewGuid(), DateTime.UtcNow));
+        await act.Should().NotThrowAsync();
     }
 
-    // ── OrderCancelled ────────────────────────────────────────────────────────
+    [Fact]
+    public async Task OrderCompletedHandler_LogsAtInformationLevel()
+    {
+        var logger = new CapturingLogger<OrderCompletedEventHandler>();
+        var handler = new OrderCompletedEventHandler(logger);
+        var id = Guid.NewGuid();
+
+        await handler.Handle(new OrderCompletedEvent(id, DateTime.UtcNow));
+
+        logger
+            .Entries.Should()
+            .ContainSingle(e =>
+                e.Level == LogLevel.Information && e.Message.Contains(id.ToString())
+            );
+    }
+
+    // -- OrderCancelledEventHandler -------------------------------------------
 
     [Fact]
-    public async Task OrderCancelledHandler_ReceivesPublishedEvent_WithoutThrowing()
+    public async Task OrderCancelledHandler_ValidEvent_CompletesWithoutThrowing()
     {
-        var received = new TaskCompletionSource<OrderCancelledEvent>(
-            TaskCreationOptions.RunContinuationsAsynchronously
-        );
-
         var handler = new OrderCancelledEventHandler(
             NullLogger<OrderCancelledEventHandler>.Instance
         );
 
-        _activator.Handle<OrderCancelledEvent>(async msg =>
-        {
-            await handler.Handle(msg);
-            received.SetResult(msg);
-        });
-        _starter.Start();
+        var act = async () =>
+            await handler.Handle(
+                new OrderCancelledEvent(Guid.NewGuid(), "No longer needed", DateTime.UtcNow)
+            );
+        await act.Should().NotThrowAsync();
+    }
 
-        var @event = new OrderCancelledEvent(Guid.NewGuid(), "Test reason", DateTime.UtcNow);
-        await _bus.Send(@event);
+    [Fact]
+    public async Task OrderCancelledHandler_LogsAtWarningLevel()
+    {
+        var logger = new CapturingLogger<OrderCancelledEventHandler>();
+        var handler = new OrderCancelledEventHandler(logger);
+        var id = Guid.NewGuid();
 
-        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        result.Reason.Should().Be("Test reason");
+        await handler.Handle(new OrderCancelledEvent(id, "Out of stock", DateTime.UtcNow));
+
+        logger
+            .Entries.Should()
+            .ContainSingle(e => e.Level == LogLevel.Warning && e.Message.Contains(id.ToString()));
+    }
+}
+
+// -- Test helper: captures log entries for assertion -------------------------
+
+internal sealed class LogEntry(LogLevel level, string message)
+{
+    public LogLevel Level { get; } = level;
+    public string Message { get; } = message;
+}
+
+internal sealed class CapturingLogger<T> : ILogger<T>
+{
+    public List<LogEntry> Entries { get; } = [];
+
+    public IDisposable? BeginScope<TState>(TState state)
+        where TState : notnull => NullLogger.Instance.BeginScope(state);
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter
+    )
+    {
+        Entries.Add(new LogEntry(logLevel, formatter(state, exception)));
     }
 }

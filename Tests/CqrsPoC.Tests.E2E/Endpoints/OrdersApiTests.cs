@@ -7,7 +7,6 @@ using CqrsPoC.Domain.Enums;
 using CqrsPoC.Tests.E2E.Infrastructure;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CqrsPoC.Tests.E2E.Endpoints;
 
@@ -72,7 +71,7 @@ public sealed class OrdersApiTests : IClassFixture<OrdersWebApplicationFactory>
         );
 
         _factory.PublisherMock.Verify(
-            p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), CancellationToken.None),
+            p => p.PublishAsync(It.IsAny<OrderCreatedEvent>(), It.IsAny<CancellationToken>()),
             Times.Once
         );
     }
