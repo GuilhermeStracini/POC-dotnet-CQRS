@@ -3,6 +3,7 @@ using CqrsPoC.Infrastructure.Messaging.Handlers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit;
 
 namespace CqrsPoC.Tests.Integration.Messaging;
 
