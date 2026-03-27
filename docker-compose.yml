@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+
+  # ── RabbitMQ ────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: cqrs-rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI  →  http://localhost:15672  (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ── API ─────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cqrs-api
+    ports:
+      - "8080:8080"    # Swagger UI  →  http://localhost:8080
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__RabbitMQ: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  rabbitmq-data:

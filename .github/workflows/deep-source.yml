@@ -1,4 +1,4 @@
-name: Deep Source
+name: DeepSource
 
 on:
   push:
@@ -8,26 +8,46 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  DeepSource:
-    name: Deep Source Coverage report
+  deepsource:
+    name: Coverage report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Install DeepSource scanner
-        run: curl https://deepsource.io/cli | sh
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
-      - name: Build and analyze
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Build
+        run: dotnet build -c Debug --verbosity minimal
+
+      # ── Run all tests under the coverage collector ────────────────────────────
+      #
+      #   dotnet-coverage collect wraps the child process at the profiler level,
+      #   so no extra NuGet packages are needed in the test projects.
+      #   The -f / --format flag produces a single merged cobertura XML.
+      #
+      - name: Test with coverage
+        run: |
+          dotnet-coverage collect \
+            "dotnet test -c Debug --no-build --no-restore --verbosity minimal" \
+            --output coverage.cobertura.xml \
+            --output-format cobertura
+
+      - name: Install DeepSource scanner
+        run: curl https://deepsource.io/cli | sh
+
+      - name: Report coverage to DeepSource
         env:
           DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
         run: |
-          dotnet build -c Debug --verbosity minimal
-          dotnet test -c Debug --verbosity minimal --no-build --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat="cobertura"
-          ./bin/deepsource report --analyzer test-coverage --key csharp --value-file ./Tests/POCTemplate.Tests/coverage.cobertura.xml
+          ./bin/deepsource report \
+            --analyzer test-coverage \
+            --key csharp \
+            --value-file coverage.cobertura.xml
