@@ -6,9 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
-using Rebus.Bus;
 using Rebus.Config;
-using Rebus.ServiceProvider;
 using Rebus.Transport.InMem;
 
 namespace CqrsPoC.Tests.E2E.Infrastructure;
@@ -78,7 +76,7 @@ public sealed class OrdersWebApplicationFactory : WebApplicationFactory<Program>
     {
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var order = CqrsPoC.Domain.Entities.Order.Create(customer, product, amount);
+        var order = Domain.Entities.Order.Create(customer, product, amount);
         db.Orders.Add(order);
         await db.SaveChangesAsync();
         return order.Id;

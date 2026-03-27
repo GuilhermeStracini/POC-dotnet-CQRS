@@ -1,5 +1,4 @@
 using CqrsPoC.Domain.Entities;
-using CqrsPoC.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace CqrsPoC.Infrastructure.Persistence;

@@ -43,7 +43,7 @@ public sealed class OrderRepositoryTests : IDisposable
         var retrieved = await _repository.GetByIdAsync(order.Id);
 
         retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(order.Id);
+        retrieved.Id.Should().Be(order.Id);
         retrieved.CustomerName.Should().Be("Alice");
         retrieved.ProductName.Should().Be("Widget");
         retrieved.Amount.Should().Be(99.99m);

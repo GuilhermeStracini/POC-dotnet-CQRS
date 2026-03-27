@@ -27,7 +27,7 @@ public sealed class QueryHandlerTests
         var result = await handler.Handle(new GetOrderQuery(order.Id), CancellationToken.None);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(order.Id);
+        result.Id.Should().Be(order.Id);
         result.CustomerName.Should().Be("Alice");
         result.ProductName.Should().Be("Widget");
         result.Amount.Should().Be(99.99m);

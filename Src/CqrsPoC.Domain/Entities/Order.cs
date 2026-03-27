@@ -85,7 +85,7 @@ public class Order
 
     // ── Permitted transitions helper (useful for API responses) ───────────────
     public IEnumerable<string> PermittedTriggers =>
-        _machine.GetPermittedTriggers().Select(t => t.ToString());
+        _machine.GetPermittedTriggersAsync().Result.Select(t => t.ToString());
 
     // ── Private helpers ───────────────────────────────────────────────────────
     private void Touch() => UpdatedAt = DateTime.UtcNow;
