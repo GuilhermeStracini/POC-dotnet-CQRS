@@ -40,10 +40,15 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task GetOrder_NonExistingId_ReturnsNull()
     {
-        _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None)).ReturnsAsync((Order?)null);
+        _repoMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync((Order?)null);
 
         var handler = new GetOrderQueryHandler(_repoMock.Object);
-        var result = await handler.Handle(new GetOrderQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await handler.Handle(
+            new GetOrderQuery(Guid.NewGuid()),
+            CancellationToken.None
+        );
 
         result.Should().BeNull();
     }
@@ -92,7 +97,9 @@ public sealed class QueryHandlerTests
             Order.Create("Carol", "Widget C", 30m),
         };
 
-        _repoMock.Setup(r => r.GetAllAsync(CancellationToken.None)).ReturnsAsync(orders.AsReadOnly());
+        _repoMock
+            .Setup(r => r.GetAllAsync(CancellationToken.None))
+            .ReturnsAsync(orders.AsReadOnly());
 
         var handler = new GetAllOrdersQueryHandler(_repoMock.Object);
         var results = await handler.Handle(new GetAllOrdersQuery(), CancellationToken.None);
@@ -104,7 +111,9 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task GetAllOrders_EmptyRepository_ReturnsEmptyList()
     {
-        _repoMock.Setup(r => r.GetAllAsync(CancellationToken.None)).ReturnsAsync(new List<Order>().AsReadOnly());
+        _repoMock
+            .Setup(r => r.GetAllAsync(CancellationToken.None))
+            .ReturnsAsync(new List<Order>().AsReadOnly());
 
         var handler = new GetAllOrdersQueryHandler(_repoMock.Object);
         var results = await handler.Handle(new GetAllOrdersQuery(), CancellationToken.None);
