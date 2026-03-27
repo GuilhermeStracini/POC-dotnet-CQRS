@@ -2,6 +2,7 @@ using CqrsPoC.Domain.Entities;
 using CqrsPoC.Domain.Enums;
 using CqrsPoC.Domain.Exceptions;
 using FluentAssertions;
+using Xunit;
 
 namespace CqrsPoC.Tests.Unit.Domain;
 
