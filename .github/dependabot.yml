@@ -1,30 +1,157 @@
 version: 2
 
 updates:
-- package-ecosystem: "nuget"
-  directory: "/"
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 50
-  assignees: 
-    - "guibranco"
-  reviewers: 
-    - "guibranco"
-  labels:
-    - "nuget"
-    - ".NET"
-    - "packages"
-    - "dependencies"
 
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 50
-  assignees: 
-    - "guibranco"
-  reviewers: 
-    - "guibranco"
-  labels:
-    - "github-actions"
-    - "dependencies"
+  #
+  # NuGet dependencies
+  #
+  - package-ecosystem: "nuget"
+    directory: "/"
+
+    schedule:
+      interval: weekly
+
+    open-pull-requests-limit: 10
+
+    assignees:
+      - "guibranco"
+
+    reviewers:
+      - "guibranco"
+
+    labels:
+      - "nuget"
+      - "packages"
+      - ".NET"
+      - "dependencies"
+
+    groups:
+
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+
+      aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+
+      extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+
+      testing:
+        patterns:
+          - "xunit*"
+          - "FluentAssertions*"
+          - "Moq*"
+          - "coverlet*"
+          - "Microsoft.NET.Test.Sdk"
+
+      logging:
+        patterns:
+          - "Serilog*"
+          - "NLog*"
+
+      telemetry:
+        patterns:
+          - "OpenTelemetry*"
+
+      azure:
+        patterns:
+          - "Azure.*"
+
+      dependencies:
+        patterns:
+          - "*"
+
+  #
+  # GitHub Actions dependencies
+  #
+  - package-ecosystem: "github-actions"
+    directory: "/"
+
+    schedule:
+      interval: weekly
+
+    open-pull-requests-limit: 5
+
+    assignees:
+      - "guibranco"
+
+    reviewers:
+      - "guibranco"
+
+    labels:
+      - "github-actions"
+      - "dependencies"
+
+    groups:
+
+      github-actions:
+        patterns:
+          - "*"
+  #
+  # Root Dockerfiles + docker-compose.yml
+  #
+  - package-ecosystem: "docker"
+    directory: "/"
+
+    schedule:
+      interval: weekly
+
+    open-pull-requests-limit: 10
+
+    assignees:
+      - "guibranco"
+
+    reviewers:
+      - "guibranco"
+
+    labels:
+      - "docker"
+      - "containers"
+      - "dependencies"
+
+    groups:
+
+      dotnet:
+        patterns:
+          - "mcr.microsoft.com/dotnet/*"
+
+      node:
+        patterns:
+          - "node"
+
+      alpine:
+        patterns:
+          - "alpine"
+
+      linux-base:
+        patterns:
+          - "ubuntu"
+          - "debian"
+
+      docker-dependencies:
+        patterns:
+          - "*"
+
+  #
+  # Example: src-level microservice Dockerfiles
+  # (remove if not applicable)
+  #
+  - package-ecosystem: "docker"
+    directory: "/src"
+
+    schedule:
+      interval: weekly
+
+    labels:
+      - "docker"
+      - "containers"
+      - "dependencies"
+
+    assignees:
+      - "guibranco"
+
+    reviewers:
+      - "guibranco"
